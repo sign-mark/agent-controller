@@ -7,7 +7,7 @@
   />
 </p>
 
-# Credo Controller REST API
+# Agent Controller REST API
 
 <p align="center">
   <a
@@ -29,7 +29,7 @@
 </p>
 <br />
 
-The Credo Controller REST API is the most convenient way for self-sovereign identity (SSI) developers to interact with SSI agents.
+The Agent Controller REST API is the most convenient way for self-sovereign identity (SSI) developers to interact with SSI agents.
 
 - ⭐ **Endpoints** to create connections, issue credentials, and request proofs.
 - 💻 **CLI** that makes it super easy to start an instance of the REST API.
@@ -103,14 +103,14 @@ If you want to build your own Docker image locally and run it:
 1. **Build the Docker image:**
 
    ```sh
-   docker build -t credo-controller:local .
+   docker build -t agent-controller:local .
    ```
 
 2. **Run the container:**
    ```sh
    docker run --network host \
      -v "$(pwd)/samples/cliConfig.json:/app/cliConfig.json" \
-     credo-controller:local --config /app/cliConfig.json
+     agent-controller:local --config /app/cliConfig.json
    ```
 
 This method gives you full control over the Docker build process and allows you to customize the image as needed.
@@ -122,7 +122,7 @@ This method gives you full control over the Docker build process and allows you 
 > ```sh
 > docker run -p 4001:4001 -p 4002:4002 \
 >   -v "$(pwd)/samples/cliConfig.json:/app/cliConfig.json" \
->   credo-controller:local --config /app/cliConfig.json
+>   agent-controller:local --config /app/cliConfig.json
 > ```
 >
 > When using port mapping, set `walletUrl` to `host.docker.internal:5432` in the config so the container can reach a PostgreSQL instance running on your host.
@@ -155,7 +155,7 @@ The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already
 1. **Start PostgreSQL database:**
 
    ```sh
-   docker run --name credo-postgres -d \
+   docker run --name agent-controller-postgres -d \
      -e POSTGRES_DB=postgres \
      -e POSTGRES_USER=postgres \
      -e POSTGRES_PASSWORD=postgres \
@@ -163,7 +163,7 @@ The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already
      postgres:13
    ```
 
-2. **Run the Credo Controller:**
+2. **Run the Agent Controller:**
    ```sh
    docker run --network host \
      -v "$(pwd)/samples/cliConfig.json:/app/cliConfig.json" \
@@ -172,6 +172,8 @@ The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already
    ```
 
 This method uses the official prebuilt image and connects to your local PostgreSQL instance.
+
+> **Note**: The Docker image is still published under the legacy name `ghcr.io/credebl/credo-controller`. The prebuilt image and `docker compose` entry points have not yet been renamed to match the new "Agent Controller" project name.
 
 > **OS Compatibility**: This containerized method has been tested and works on **WSL**, **Ubuntu**, and **Fedora**.
 >
@@ -241,7 +243,7 @@ import { agentDependencies } from '@credo-ts/node'
 const run = async () => {
   const agent = new Agent(
     {
-      // ... Credo Config ... //
+      // ... Agent Config ... //
     },
     agentDependencies
   )
