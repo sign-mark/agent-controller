@@ -1,9 +1,9 @@
 <p align="center">
   <br />
   <img
-    alt="Credo logo"
-    src="https://raw.githubusercontent.com/openwallet-foundation/credo-ts/main/images/credo-logo.png"
-    height="250px"
+    alt="CREDEBL logo"
+    src="https://raw.githubusercontent.com/credebl/.github/main/logo.svg"
+    height="150px"
   />
 </p>
 
@@ -11,7 +11,7 @@
 
 <p align="center">
   <a
-    href="https://raw.githubusercontent.com/hyperledger/aries-framework-javascript-ext/main/LICENSE"
+    href="https://raw.githubusercontent.com/credebl/agent-controller/main/LICENSE"
     ><img
       alt="License"
       src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"
@@ -21,10 +21,10 @@
       alt="typescript"
       src="https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg"
   /></a>
-  <a href="https://github.com/credebl/credo-controller"
+  <a href="https://github.com/credebl/agent-controller"
     ><img
       alt="GitHub"
-      src="https://img.shields.io/github/stars/credebl/credo-controller?style=social"
+      src="https://img.shields.io/github/stars/credebl/agent-controller?style=social"
   /></a>
 </p>
 <br />
@@ -37,7 +37,7 @@ The Credo Controller REST API is the most convenient way for self-sovereign iden
 
 ## Quick Start
 
-The REST API provides an OpenAPI schema that can easily be viewed using the SwaggerUI that is provided with the server. The docs can be viewed on the `/docs` endpoint (e.g. http://localhost:3000/docs).
+The REST API provides an OpenAPI schema that can easily be viewed using the SwaggerUI that is provided with the server. The docs can be viewed on the `/docs` endpoint (e.g. http://localhost:4001/docs, where `4001` is the admin port configured in `samples/cliConfig.json`).
 
 > The OpenAPI spec is generated from the model classes used by Credo-TS. Due to limitations in the inspection of these classes, the generated schema does not always exactly match the expected format. Keep this in mind when using this package. If you encounter any issues, feel free to open an issue.
 
@@ -50,8 +50,8 @@ Using the CLI is the easiest way to get started with the REST API.
 ### Clone the Repository
 
 ```sh
-git clone https://github.com/credebl/credo-controller.git
-cd credo-controller
+git clone https://github.com/credebl/agent-controller.git
+cd agent-controller
 ```
 
 ## Getting Started
@@ -62,21 +62,22 @@ cd credo-controller
 <summary><strong>Local Development Setup</strong></summary>
 
 #### Prerequisites
-- Node.js version **18.19.0** (tested and recommended)
+
+- Node.js version **20 (LTS)** (tested and recommended)
 - Yarn package manager
 
-> **Note**: This project requires Node.js 18.19.0. It has been tested and may not work properly with newer versions like Node.js 24.x.
-
-> **Compatibility**: While Node.js 18.19.0 is recommended, the project should also work with Node.js versions >20 (major versions). However, thorough testing is recommended when using newer Node.js versions.
+> **Note**: Node.js 20 (LTS) is used in CI and is the recommended version. The Docker image builds and runs on Node.js 22, so newer LTS versions should also work, but thorough testing is recommended before using them.
 
 #### Steps
 
 1. **Install dependencies:**
+
    ```sh
    yarn install
    ```
 
 2. **Build the project:**
+
    ```sh
    yarn build
    ```
@@ -100,6 +101,7 @@ If you want to build your own Docker image locally and run it:
 #### Steps
 
 1. **Build the Docker image:**
+
    ```sh
    docker build -t credo-controller:local .
    ```
@@ -113,7 +115,17 @@ If you want to build your own Docker image locally and run it:
 
 This method gives you full control over the Docker build process and allows you to customize the image as needed.
 
-> **OS Compatibility**: This containerized method has been tested and works on **WSL**, **Ubuntu**, and **Fedora**. It should work on any system with Docker support.
+> **OS Compatibility**: This containerized method has been tested and works on **WSL**, **Ubuntu**, and **Fedora**.
+>
+> `--network host` is Linux-only. On **macOS / Windows (Docker Desktop)** use port mapping instead:
+>
+> ```sh
+> docker run -p 4001:4001 -p 4002:4002 \
+>   -v "$(pwd)/samples/cliConfig.json:/app/cliConfig.json" \
+>   credo-controller:local --config /app/cliConfig.json
+> ```
+>
+> When using port mapping, set `walletUrl` to `host.docker.internal:5432` in the config so the container can reach a PostgreSQL instance running on your host.
 
 </details>
 
@@ -126,23 +138,22 @@ This method uses the official prebuilt Docker image with a PostgreSQL database s
 
 #### Prerequisites
 
-First, you need to add these required parameters to `samples/cliConfig.json`:
+The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already uses `walletType: "postgres"`). Optionally, you can tune the connection pool by adding these settings:
 
 ```json
 {
-  // ...existing configuration...
   "walletConnectTimeout": 30,
   "walletMaxConnections": 90,
   "walletIdleTimeout": 30
-  // ...rest of configuration...
 }
 ```
 
-> **Note**: These parameters are required to avoid wallet connection errors when using PostgreSQL.
+> **Note**: These settings are optional connection-pool tunables for the PostgreSQL wallet. They map to the `wallet-connect-timeout`, `wallet-max-connections`, and `wallet-idle-timeout` CLI options (or the `CONNECT_TIMEOUT`, `MAX_CONNECTIONS`, and `IDLE_TIMEOUT` environment variables). They are not required for the agent to start.
 
 #### Steps
 
 1. **Start PostgreSQL database:**
+
    ```sh
    docker run --name credo-postgres -d \
      -e POSTGRES_DB=postgres \
@@ -162,13 +173,25 @@ First, you need to add these required parameters to `samples/cliConfig.json`:
 
 This method uses the official prebuilt image and connects to your local PostgreSQL instance.
 
-> **OS Compatibility**: This containerized method has been tested and works on **WSL**, **Ubuntu**, and **Fedora**. It should work on any system with Docker support.
+> **OS Compatibility**: This containerized method has been tested and works on **WSL**, **Ubuntu**, and **Fedora**.
+>
+> `--network host` is Linux-only. On **macOS / Windows (Docker Desktop)** use port mapping instead:
+>
+> ```sh
+> docker run -p 4001:4001 -p 4002:4002 \
+>   -v "$(pwd)/samples/cliConfig.json:/app/cliConfig.json" \
+>   ghcr.io/credebl/credo-controller:latest \
+>   --config /app/cliConfig.json
+> ```
+>
+> When using port mapping, set `walletUrl` to `host.docker.internal:5432` in the config so the container can reach the PostgreSQL instance running on your host.
 
 #### Alternative: Using .env File
 
 The repository includes an agent environment sample file. For a quick start:
 
 1. **Rename the sample environment file:**
+
    ```sh
    cp .env.sample .env  # (if available in the repository)
    ```
@@ -179,7 +202,26 @@ The repository includes an agent environment sample file. For a quick start:
    ./bin/afj-rest.js --config ./samples/cliConfig.json
    ```
 
+> **Note**: `afj-rest.js` is the legacy binary name, kept for backward compatibility. The CLI entrypoint is defined in the `bin` field of `package.json`.
+
 </details>
+
+## Configuration
+
+The agent can be configured in three ways:
+
+1. **CLI options**: Run the CLI with `--help` to print the full list of available options.
+
+   ```sh
+   # With Docker
+   docker run ghcr.io/credebl/credo-controller:latest --help
+
+   # Directly on computer
+   ./bin/afj-rest.js start --help
+   ```
+
+2. **JSON config file**: When providing a lot of configuration options, pass a JSON file with `--config`. All properties should use camelCase for the key names. See [samples/cliConfig.json](samples/cliConfig.json) for a complete example.
+3. **Environment variables**: All properties are prefixed with `AFJ_REST` and use UPPER_SNAKE_CASE (e.g. `AFJ_REST_WALLET_KEY=my-secret-key ./bin/afj-rest.js start ...`).
 
 ## Development
 
