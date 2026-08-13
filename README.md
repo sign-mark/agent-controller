@@ -148,7 +148,7 @@ The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already
 }
 ```
 
-> **Note**: These settings are optional connection-pool tunables for the PostgreSQL wallet. They map to the `wallet-connect-timeout`, `wallet-max-connections`, and `wallet-idle-timeout` CLI options (or the `CONNECT_TIMEOUT`, `MAX_CONNECTIONS`, and `IDLE_TIMEOUT` environment variables). They are not required for the agent to start.
+> **Note**: These settings are optional connection-pool tunables for the PostgreSQL wallet. They map to the `wallet-connect-timeout`, `wallet-max-connections`, and `wallet-idle-timeout` CLI options, the `AFJ_REST_WALLET_CONNECT_TIMEOUT`, `AFJ_REST_WALLET_MAX_CONNECTIONS`, and `AFJ_REST_WALLET_IDLE_TIMEOUT` environment variables, or the `CONNECT_TIMEOUT`, `MAX_CONNECTIONS`, and `IDLE_TIMEOUT` environment-variable fallbacks. They are not required for the agent to start.
 
 #### Steps
 
@@ -160,7 +160,7 @@ The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already
      -e POSTGRES_USER=postgres \
      -e POSTGRES_PASSWORD=postgres \
      -p 5432:5432 \
-     postgres:13
+     postgres:16
    ```
 
 2. **Run the Agent Controller:**
@@ -174,7 +174,7 @@ The `samples/cliConfig.json` file must reference a PostgreSQL wallet (it already
 This method uses the official prebuilt image and connects to your local PostgreSQL instance.
 
 > **Note**: The Docker image is still published under the legacy name `ghcr.io/credebl/credo-controller`. The prebuilt image and `docker compose` entry points have not yet been renamed to match the new "Agent Controller" project name.
-
+>
 > **OS Compatibility**: This containerized method has been tested and works on **WSL**, **Ubuntu**, and **Fedora**.
 >
 > `--network host` is Linux-only. On **macOS / Windows (Docker Desktop)** use port mapping instead:
@@ -245,8 +245,9 @@ const run = async () => {
     {
       // ... Agent Config ... //
     },
-    agentDependencies
+    agentDependencies,
   )
+  await agent.initialize()
   await startServer(agent, { port: 3000 })
 }
 
