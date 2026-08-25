@@ -49,6 +49,7 @@ interface Parsed {
   apiKey?: string
   updateJwtSecret?: boolean
   openBaoKms?: AriesRestConfig['openBaoKms']
+  keyManagement?: AriesRestConfig['keyManagement']
 }
 
 interface InboundTransport {
@@ -218,5 +219,6 @@ export async function runCliServer() {
     apiKey: parsed['apiKey'],
     updateJwtSecret: parsed['updateJwtSecret'],
     openBaoKms: parsed.openBaoKms,
+    keyManagement: parsed.keyManagement,
   } as AriesRestConfig)
 }

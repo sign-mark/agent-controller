@@ -244,7 +244,19 @@ OpenBao Transit can be registered as an additional KMS backend while Askar remai
 }
 ```
 
-The backend identifier is `openbao`. Callers must explicitly select it when creating a key (for example, `backend: "openbao"`); existing operations continue to use Askar. Ed25519 and P-256 key creation, public-key lookup, signing, and verification are supported. Private keys are generated inside Transit and are configured as non-exportable. Import, encryption, decryption, and deletion are intentionally not advertised by this backend.
+The backend identifier is `openbao`. Existing operations continue to use Askar unless a purpose is explicitly routed to OpenBao. To protect keys created for Holder OpenID4VC credential binding proofs, add this alongside `openBaoKms`:
+
+```json
+{
+  "keyManagement": {
+    "holderCredentialBinding": "openbao"
+  }
+}
+```
+
+If `keyManagement` or `holderCredentialBinding` is omitted, Holder credential binding continues to use Askar. Selecting `openbao` without configuring `openBaoKms` fails agent startup instead of silently falling back. Issuer signing, DIDComm keys, and all other key purposes remain unchanged.
+
+Ed25519 and P-256 key creation, public-key lookup, signing, and verification are supported. Private keys are generated inside Transit and are configured as non-exportable. Import, encryption, decryption, and deletion are intentionally not advertised by this backend.
 
 Each Transit key name is scoped to the Credo agent context (the tenant record id in multi-tenant mode). A key id from one tenant is rejected in another tenant context. OpenBao failures are returned to the caller and never fall back to Askar.
 
