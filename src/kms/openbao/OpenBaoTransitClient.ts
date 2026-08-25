@@ -3,6 +3,8 @@ import type { AxiosInstance } from 'axios'
 
 import axios, { AxiosError } from 'axios'
 
+import { OpenBaoHttpError, toSafeOpenBaoError } from './OpenBaoError'
+
 type OpenBaoResponse<T> = { data: T }
 
 export interface OpenBaoTransitKey {
@@ -42,8 +44,8 @@ export class OpenBaoTransitClient {
         `/${this.config.transitMount}/keys/${encodeURIComponent(name)}`,
       )
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.status === 404) return null
-      throw error
+      if (error instanceof OpenBaoHttpError && error.status === 404) return null
+      throw toSafeOpenBaoError(error)
     }
   }
 
@@ -115,9 +117,14 @@ export class OpenBaoTransitClient {
 
   private async login() {
     const { roleId, secretId, mountPath } = this.config.appRole!
-    const response = await this.http.post<{
-      auth: { client_token: string; lease_duration: number }
-    }>(`/auth/${mountPath}/login`, { role_id: roleId, secret_id: secretId })
+    let response
+    try {
+      response = await this.http.post<{
+        auth: { client_token: string; lease_duration: number }
+      }>(`/auth/${mountPath}/login`, { role_id: roleId, secret_id: secretId })
+    } catch (error) {
+      throw toSafeOpenBaoError(error)
+    }
     this.token = response.data.auth.client_token
     const refreshAfterSeconds = Math.max(1, Math.floor(response.data.auth.lease_duration * 0.8))
     this.tokenExpiresAt = Date.now() + refreshAfterSeconds * 1000

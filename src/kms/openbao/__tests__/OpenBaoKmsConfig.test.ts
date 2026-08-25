@@ -21,4 +21,14 @@ describe('resolveOpenBaoKmsConfig', () => {
       }),
     ).toMatchObject({ url: 'https://bao.example', transitMount: 'wallet-transit', keyPrefix: 'credebl' })
   })
+
+  test.each([
+    'not-a-url',
+    'ftp://bao.example',
+    'https://bao .example',
+    ' https://bao.example',
+    'https://token@bao.example',
+  ])('rejects invalid URL %s', (url) => {
+    expect(() => resolveOpenBaoKmsConfig({ url, token: 'token' })).toThrow('valid http or https URL')
+  })
 })

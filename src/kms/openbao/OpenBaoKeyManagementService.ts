@@ -3,6 +3,7 @@ import type { ResolvedOpenBaoKmsConfig } from './OpenBaoKmsConfig'
 import { Kms, type AgentContext } from '@credo-ts/core'
 import { createHash, createPublicKey, randomBytes } from 'crypto'
 
+import { toSafeOpenBaoError } from './OpenBaoError'
 import { OpenBaoTransitClient, type OpenBaoTransitKey } from './OpenBaoTransitClient'
 
 const backend = 'openbao'
@@ -150,6 +151,6 @@ export class OpenBaoKeyManagementService implements Kms.KeyManagementService {
   }
 
   private asError(error: unknown) {
-    return error instanceof Error ? error : new Error(String(error))
+    return toSafeOpenBaoError(error)
   }
 }

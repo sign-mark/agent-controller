@@ -34,7 +34,21 @@ const pathPart = (value: string, name: string) => {
 
 export const resolveOpenBaoKmsConfig = (config: OpenBaoKmsConfig): ResolvedOpenBaoKmsConfig => {
   const url = config.url.replace(/\/+$/, '')
-  if (!/^https?:\/\//.test(url)) throw new Error('OpenBao KMS url must use http or https')
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(url)
+  } catch {
+    throw new Error('OpenBao KMS url must be a valid http or https URL with a hostname')
+  }
+  if (
+    config.url !== config.url.trim() ||
+    !['http:', 'https:'].includes(parsedUrl.protocol) ||
+    !parsedUrl.hostname ||
+    parsedUrl.username ||
+    parsedUrl.password
+  ) {
+    throw new Error('OpenBao KMS url must be a valid http or https URL with a hostname and no credentials')
+  }
   if (config.token && config.appRole) throw new Error('Configure either an OpenBao token or AppRole, not both')
   if (!config.token && !config.appRole) throw new Error('OpenBao KMS requires a token or AppRole credentials')
 
